@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>MM Dashboard — NAS100 · Perú</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#06090f;--bg2:#0a0f18;--bg3:#0e1520;--bg4:#121b28;
+  --border:#1a2a3a;--border2:#223040;
+  --green:#00ff88;--red:#ff3b5c;--yellow:#ffb800;--blue:#00b4ff;
+  --text:#c9d8e8;--text2:#7a9bb5;--text3:#3d5570;--white:#eaf2ff;
+  --mono:'Share Tech Mono',monospace;
+  --display:'Bebas Neue',sans-serif;
+  --sans:'Rajdhani',sans-serif;
+}
+html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.04) 2px,rgba(0,0,0,.04) 4px);pointer-events:none;z-index:9998}
+.app{max-width:980px;margin:0 auto;padding:12px;display:flex;flex-direction:column;gap:12px}
+
+/* HEADER */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:var(--bg2);border:1px solid var(--border);border-top:2px solid var(--blue);position:relative;overflow:hidden}
+.hdr::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--blue),transparent);animation:scan 4s linear infinite}
+@keyframes scan{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.hdr-l{display:flex;align-items:center;gap:14px}
+.ldot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:bl 2s ease-in-out infinite;flex-shrink:0}
+@keyframes bl{0%,100%{opacity:1;box-shadow:0 0 8px var(--green)}50%{opacity:.4;box-shadow:0 0 3px var(--green)}}
+.logo{font-family:var(--display);font-size:32px;letter-spacing:4px;color:var(--white);line-height:1}
+.logo-s{font-family:var(--mono);font-size:10px;color:var(--blue);letter-spacing:2px;margin-top:2px}
+.hdr-r{text-align:right}
+#clk{font-family:var(--mono);font-size:24px;color:var(--green);letter-spacing:2px;text-shadow:0 0 10px rgba(0,255,136,.4)}
+.ctz{font-family:var(--mono);font-size:10px;color:var(--blue);letter-spacing:2px;margin-left:6px}
+#fecha{font-family:var(--mono);font-size:10px;color:var(--text2);letter-spacing:1px;margin-top:3px}
+
+/* TZ BAR */
+.tzbar{background:rgba(0,180,255,.05);border:1px solid rgba(0,180,255,.15);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.tzl{font-family:var(--mono);font-size:10px;color:var(--blue);letter-spacing:1px}
+.tzrw{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.tzr{font-family:var(--mono);font-size:10px;color:var(--text3)}
+#etc{color:var(--text2)}
+#dstn{font-size:10px}
+.lbadge{display:inline-flex;align-items:center;padding:3px 10px;font-family:var(--mono);font-size:9px;letter-spacing:1px;background:rgba(0,255,136,.08);color:var(--green);border:1px solid rgba(0,255,136,.2)}
+
+/* SECTION LABEL */
+.slbl{display:flex;align-items:center;gap:8px;font-family:var(--sans);font-size:11px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--text3)}
+.slbl::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* SESSIONS */
+.sgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.sc{padding:10px 12px;background:var(--bg2);border:1px solid var(--border);text-align:center;position:relative;overflow:hidden;transition:all .3s}
+.sc.on{border-color:var(--green);background:rgba(0,255,136,.04)}
+.sc.on::before,.sc.warn::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.sc.on::before{background:var(--green)}.sc.warn::before{background:var(--yellow)}
+.sc.warn{border-color:var(--yellow);background:rgba(255,184,0,.04)}
+.scn{font-family:var(--sans);font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--text2)}
+.sc.on .scn{color:var(--green)}.sc.warn .scn{color:var(--yellow)}
+.sct{font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:3px;line-height:1.5}
+.scs{font-family:var(--sans);font-size:10px;font-weight:600;letter-spacing:1px;margin-top:3px;color:var(--text3)}
+.sc.on .scs{color:var(--green)}.sc.warn .scs{color:var(--yellow)}
+
+/* TV CONTAINERS */
+.tvw{background:var(--bg2);border:1px solid var(--border);overflow:hidden}
+.tvlbl{padding:8px 14px;background:var(--bg3);border-bottom:1px solid var(--border);font-family:var(--sans);font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--text3);display:flex;align-items:center;justify-content:space-between}
+.tvlbl span{font-family:var(--mono);font-size:9px;color:var(--green);display:flex;align-items:center;gap:5px}
+.tvlbl span::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 4px var(--green);animation:bl 2s infinite}
+
+/* TAPE */
+.tapew{background:var(--bg3);border:1px solid var(--border);overflow:hidden}
+
+/* QUOTE TRIO */
+.qtrio{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.qc{background:var(--bg2);border:1px solid var(--border);overflow:hidden}
+.qcl{padding:8px 12px;background:var(--bg3);border-bottom:1px solid var(--border);font-family:var(--sans);font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--text3)}
+
+/* GUIDE */
+.guide{background:var(--bg2);border:1px solid var(--border);padding:14px 16px}
+.gg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.gi{background:var(--bg3);border:1px solid var(--border2);padding:10px 12px}
+.gil{font-family:var(--sans);font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--text3)}
+.gir{font-family:var(--sans);font-size:11px;color:var(--text2);margin-top:6px;line-height:1.7}
+.gir .g{color:var(--green)}.gir .r{color:var(--red)}.gir .y{color:var(--yellow)}
+
+/* STATUS */
+.stbar{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:var(--bg2);border:1px solid var(--border);flex-wrap:wrap;gap:8px}
+.sti{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;color:var(--text3)}
+.sd{width:6px;height:6px;border-radius:50%;background:var(--blue);box-shadow:0 0 4px var(--blue)}
+#cdt{font-family:var(--mono);font-size:10px;color:var(--text3)}
+
+/* RESPONSIVE */
+@media(max-width:600px){
+  .sgrid,.qtrio,.gg{grid-template-columns:repeat(2,1fr)}
+  #clk{font-size:18px}.logo{font-size:24px}
+}
+@media(max-width:380px){
+  .sgrid{grid-template-columns:repeat(2,1fr)}
+  .qtrio,.gg{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-l">
+      <div class="ldot"></div>
+      <div>
+        <div class="logo">MM Dashboard</div>
+        <div class="logo-s">NAS100 · Lima, Perú 🇵🇪</div>
+      </div>
+    </div>
+    <div class="hdr-r">
+      <div><span id="clk">--:--:--</span><span class="ctz">PE</span></div>
+      <div id="fecha">--</div>
+    </div>
+  </div>
+
+  <!-- TZ BAR -->
+  <div class="tzbar">
+    <div class="tzl">🕐 Hora Perú (UTC-5) · Sin cambio de horario</div>
+    <div class="tzrw">
+      <span class="tzr">NY: <span id="etc">--:--</span></span>
+      <span id="dstn" class="tzr"></span>
+      <span class="lbadge">✅ DATOS REALES · TradingView</span>
+    </div>
+  </div>
+
+  <!-- TICKER TAPE -->
+  <div class="tapew">
+    <div class="tradingview-widget-container">
+      <div class="tradingview-widget-container__widget"></div>
+      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+      {"symbols":[
+        {"proName":"FOREXCOM:NSXUSD","title":"NAS100"},
+        {"proName":"CME_MINI:NQ1!","title":"NQ Fut"},
+        {"proName":"CBOE:VIX","title":"VIX"},
+        {"proName":"TVC:DXY","title":"DXY"},
+        {"proName":"TVC:US10Y","title":"Bono 10Y"},
+        {"proName":"NASDAQ:AAPL","title":"AAPL"},
+        {"proName":"NASDAQ:NVDA","title":"NVDA"},
+        {"proName":"NASDAQ:MSFT","title":"MSFT"},
+        {"proName":"NASDAQ:AMZN","title":"AMZN"},
+        {"proName":"NASDAQ:META","title":"META"},
+        {"proName":"NASDAQ:GOOGL","title":"GOOGL"},
+        {"proName":"NASDAQ:TSLA","title":"TSLA"}
+      ],"showSymbolLogo":false,"isTransparent":true,"displayMode":"adaptive","colorTheme":"dark","locale":"es"}
+      </script>
+    </div>
+  </div>
+
+  <!-- SESIONES -->
+  <div class="slbl">⏰ Sesiones del Mercado · Hora Perú</div>
+  <div class="sgrid">
+    <div class="sc" id="sc-tok"><div class="scn">🌏 Tokio</div><div class="sct" id="t-tok">--:--</div><div class="scs" id="ss-tok">...</div></div>
+    <div class="sc" id="sc-lon"><div class="scn">🌍 Londres</div><div class="sct" id="t-lon">--:--</div><div class="scs" id="ss-lon">...</div></div>
+    <div class="sc" id="sc-win"><div class="scn">🪟 Ventana</div><div class="sct" id="t-win">--:--</div><div class="scs" id="ss-win">...</div></div>
+    <div class="sc" id="sc-ny"><div class="scn">🌎 New York</div><div class="sct" id="t-ny">--:--</div><div class="scs" id="ss-ny">...</div></div>
+  </div>
+
+  <!-- MACRO EN VIVO -->
+  <div class="slbl">⚡ Indicadores Macro — Tiempo Real</div>
+  <div class="qtrio">
+    <div class="qc">
+      <div class="qcl">VIX · Volatilidad</div>
+      <div class="tradingview-widget-container">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js" async>
+        {"symbol":"CBOE:VIX","width":"100%","isTransparent":true,"colorTheme":"dark","locale":"es"}
+        </script>
+      </div>
+    </div>
+    <div class="qc">
+      <div class="qcl">DXY · Índice del Dólar</div>
+      <div class="tradingview-widget-container">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js" async>
+        {"symbol":"TVC:DXY","width":"100%","isTransparent":true,"colorTheme":"dark","locale":"es"}
+        </script>
+      </div>
+    </div>
+    <div class="qc">
+      <div class="qcl">NQ1! · Futuros NAS100</div>
+      <div class="tradingview-widget-container">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js" async>
+        {"symbol":"CME_MINI:NQ1!","width":"100%","isTransparent":true,"colorTheme":"dark","locale":"es"}
+        </script>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAG7 -->
+  <div class="slbl">💎 Magnificent 7 · NAS100</div>
+  <div class="tvw">
+    <div class="tvlbl">Precios en tiempo real <span>LIVE</span></div>
+    <div class="tradingview-widget-container">
+      <div class="tradingview-widget-container__widget"></div>
+      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
+      {"colorTheme":"dark","dateRange":"1D","showChart":false,"locale":"es","width":"100%","height":380,"isTransparent":true,"showSymbolLogo":true,"tabs":[
+        {"title":"Magnificent 7","symbols":[
+          {"s":"NASDAQ:AAPL","d":"Apple ~8.5%"},
+          {"s":"NASDAQ:NVDA","d":"NVIDIA ~7.8%"},
+          {"s":"NASDAQ:MSFT","d":"Microsoft ~7.5%"},
+          {"s":"NASDAQ:AMZN","d":"Amazon ~5.5%"},
+          {"s":"NASDAQ:META","d":"Meta ~4.8%"},
+          {"s":"NASDAQ:GOOGL","d":"Alphabet ~3.5%"},
+          {"s":"NASDAQ:TSLA","d":"Tesla ~3.0%"}
+        ],"originalTitle":"Mag7"},
+        {"title":"Macro","symbols":[
+          {"s":"CBOE:VIX","d":"VIX"},
+          {"s":"TVC:DXY","d":"Dólar"},
+          {"s":"CME_MINI:NQ1!","d":"NQ Futuros"},
+          {"s":"TVC:US10Y","d":"Bono 10Y"},
+          {"s":"FOREXCOM:NSXUSD","d":"NAS100"}
+        ],"originalTitle":"Macro"}
+      ]}
+      </script>
+    </div>
+  </div>
+
+  <!-- GRÁFICO NAS100 -->
+  <div class="slbl">📈 NAS100 · Gráfico del Día</div>
+  <div class="tvw">
+    <div class="tvlbl">NAS100 · NQ Futuros · VIX <span>LIVE</span></div>
+    <div class="tradingview-widget-container">
+      <div class="tradingview-widget-container__widget"></div>
+      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
+      {"symbols":[
+        ["NAS100","FOREXCOM:NSXUSD|1D"],
+        ["NQ Futuros","CME_MINI:NQ1!|1D"],
+        ["VIX","CBOE:VIX|1D"]
+      ],"chartOnly":false,"width":"100%","height":280,"locale":"es","colorTheme":"dark","autosize":false,"showVolume":false,"hideDateRanges":false,"scalePosition":"right","scaleMode":"Normal","fontFamily":"Share Tech Mono, monospace","fontSize":"10","noTimeScale":false,"valuesTracking":"1","changeMode":"price-and-percent","chartType":"area","lineWidth":2,"dateRanges":["1d|1","1w|60","1m|1D"],"isTransparent":true,"lineColor":"rgba(0,180,255,1)","topColor":"rgba(0,180,255,0.2)","bottomColor":"rgba(0,180,255,0)"}
+      </script>
+    </div>
+  </div>
+
+  <!-- CALENDARIO ECONÓMICO -->
+  <div class="slbl">📅 Calendario Económico · Hora Perú</div>
+  <div class="tvw">
+    <div class="tvlbl">Eventos USD — impacto alto y medio <span>LIVE</span></div>
+    <div class="tradingview-widget-container">
+      <div class="tradingview-widget-container__widget"></div>
+      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-economic-calendar.js" async>
+      {"colorTheme":"dark","isTransparent":true,"width":"100%","height":420,"locale":"es","importanceFilter":"0,1","currencyFilter":"USD","countryFilter":"us"}
+      </script>
+    </div>
+  </div>
+
+  <!-- GUÍA DE LECTURA -->
+  <div class="guide">
+    <div class="slbl" style="margin-bottom:0">📖 Guía de Lectura</div>
+    <div class="gg">
+      <div class="gi">
+        <div class="gil">VIX</div>
+        <div class="gir">
+          <span class="g">VIX &lt; 15</span> Calmo · Operar normal<br>
+          <span class="g">VIX &lt; 20</span> Condiciones buenas<br>
+          <span class="y">VIX 20–30</span> Precaución · Reducir<br>
+          <span class="r">VIX &gt; 30</span> Peligroso · No operar
+        </div>
+      </div>
+      <div class="gi">
+        <div class="gil">DXY</div>
+        <div class="gir">
+          <span class="g">DXY baja</span> NAS100 tiende a subir<br>
+          <span class="r">DXY sube</span> NAS100 tiende a bajar<br>
+          <span class="y">DXY plano</span> Sin presión macro<br>
+          Correlación inversa dólar ↔ tech
+        </div>
+      </div>
+      <div class="gi">
+        <div class="gil">Bono 10Y</div>
+        <div class="gir">
+          <span class="g">Bono baja</span> Liquidez fluye a tech<br>
+          <span class="r">Bono &gt; 4.5%</span> Presión bajista<br>
+          <span class="y">Bono sube fuerte</span> Cuidado NAS<br>
+          Indicador clave semanal
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATUS -->
+  <div class="stbar">
+    <div class="sti"><div class="sd"></div><span>Datos reales via TradingView · Sin proxies · Requiere GitHub Pages o Netlify</span></div>
+    <span id="cdt" style="font-family:var(--mono);font-size:10px;color:var(--text3)">--</span>
+  </div>
+
+</div>
+
+<script>
+// TIMEZONE
+function etOff(){const n=new Date(),u=n.getUTCHours(),e=parseInt(n.toLocaleString('en-US',{timeZone:'America/New_York',hour:'numeric',hour12:false}));let d=e-u;if(d>12)d-=24;if(d<-12)d+=24;return d;}
+function pe2et(){return -5-etOff();}
+function etToPe(h,m=0){const d=pe2et();let r=h+d;if(r<0)r+=24;if(r>=24)r-=24;return{h:r,m};}
+function fmt(h,m=0){return`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;}
+function rng(sh,sm,eh,em){const s=etToPe(sh,sm),e=etToPe(eh,em);return`${fmt(s.h,s.m)}–${fmt(e.h,e.m)}<br><small>hora PE</small>`;}
+function inET(sh,sm,eh,em){const n=new Date(),et=new Date(n.toLocaleString('en-US',{timeZone:'America/New_York'})),c=et.getHours()*60+et.getMinutes(),s=sh*60+sm,e=eh*60+em;return s<e?(c>=s&&c<e):(c>=s||c<e);}
+function g(id){return document.getElementById(id);}
+
+function tick(){
+  const n=new Date();
+  g('clk').textContent=n.toLocaleTimeString('es-PE',{timeZone:'America/Lima',hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  g('fecha').textContent=n.toLocaleDateString('es-PE',{timeZone:'America/Lima',weekday:'short',day:'numeric',month:'short',year:'numeric'}).toUpperCase();
+  g('etc').textContent=n.toLocaleTimeString('en-US',{timeZone:'America/New_York',hour12:false,hour:'2-digit',minute:'2-digit'})+' ET';
+  const d=pe2et(),dn=g('dstn');
+  dn.textContent=d===-1?'⚠️ Perú = ET−1h (verano USA)':'✅ Perú = ET';
+  dn.style.color=d===-1?'#ffb800':'#3d5570';
+  updateSes();
+}
+
+function updateSes(){
+  const tok=inET(20,0,2,0),lon=inET(2,0,5,0),win=inET(5,0,7,0),ny=inET(7,0,17,0);
+  const lun=inET(12,0,13,30),kzNY=inET(7,0,9,0),kzCl=inET(15,0,17,0);
+  g('t-tok').innerHTML=rng(20,0,2,0);
+  g('t-lon').innerHTML=rng(2,0,5,0);
+  g('t-win').innerHTML=rng(5,0,7,0);
+  g('t-ny').innerHTML=rng(7,0,17,0);
+  ses('sc-tok','ss-tok',tok,false,'ABIERTA','CERRADA');
+  ses('sc-lon','ss-lon',lon,false,'BARRIDO ⚡','CERRADA');
+  ses('sc-win','ss-win',win,false,'VENTANA 🎯','CERRADA');
+  ses('sc-ny','ss-ny',ny,lun,lun?'LUNCH ⚠️':kzNY?'KZ OPEN 🔥':kzCl?'KZ CLOSE 🟡':'ABIERTA','CERRADA');
+}
+function ses(ci,si,active,warn,on,off){g(ci).className='sc'+(active?(warn?' warn':' on'):'');g(si).textContent=active?on:off;}
+
+let sec=0;
+setInterval(()=>{sec++;g('cdt').textContent=`Reloj: ${sec}s`;},1000);
+setInterval(tick,1000);
+tick();
+</script>
+</body>
+</html>

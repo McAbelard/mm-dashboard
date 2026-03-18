@@ -253,7 +253,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
   <div class="slbl">⚡ Indicadores Macro</div>
   <div class="mgrid">
     <div class="mc neut" id="c-vix">
-      <div class="mn">VIX · Índice Real (^VIX)</div>
+      <div class="mn">VIX · Proxy (VIXY)</div>
       <div class="mv" id="v-vix">--.-</div>
       <div class="mch fl" id="ch-vix">—</div>
       <div class="msig a" id="sg-vix">ESPERANDO</div>
@@ -357,7 +357,7 @@ const DELAY_MS  = 250;  // ms entre cada llamada a Finnhub (evita rate limit)
 
 // Todos los símbolos a cargar en orden
 const ALL_SYMS = [
-  {sym:'^VIX', id:'vix', label:'VIX (Real)', type:'macro'},
+  {sym:'VIXY', id:'vix', label:'VIX (VIXY)', type:'macro'},
   {sym:'UUP',  id:'dxy', label:'DXY (UUP)',  type:'macro'},
   {sym:'QQQ',  id:'nq',  label:'QQQ NAS100', type:'macro'},
   {sym:'AAPL', nm:'Apple',     wt:'~8.5%', type:'mag7'},
@@ -515,10 +515,11 @@ function renderVIX(d){
   const{p,c,pct}=d;
   g('v-vix').textContent=p.toFixed(2);setChg('ch-vix',c,pct);
   const card=g('c-vix');card.className='mc';
-  if(p<12){card.classList.add('bull');sig('sg-vix','g','🟢 VIX BAJO · CALMO');g('d-vix').textContent='Baja volatilidad. OBs muy confiables. Condiciones óptimas.';_bVIX=1;}
+  // VIXY es proxy del VIX — escala ligeramente menor
+  if(p<12){card.classList.add('bull');sig('sg-vix','g','🟢 VIX BAJO');g('d-vix').textContent='Volatilidad baja. Condiciones óptimas. OBs muy confiables.';_bVIX=1;}
   else if(p<18){card.classList.add('bull');sig('sg-vix','g','✅ VIX NORMAL');g('d-vix').textContent='Volatilidad normal. Buenas condiciones de operación.';_bVIX=1;}
-  else if(p<25){card.classList.add('neut');sig('sg-vix','a','⚠️ VIX ELEVADO · CUIDADO');g('d-vix').textContent='Precaución. Reducir tamaño. Ampliar stops.';_bVIX=0;}
-  else{card.classList.add('bear');sig('sg-vix','r','🔴 VIX PELIGROSO');g('d-vix').textContent='Mercado en pánico. Solo expertos. Riesgo extremo.';_bVIX=-1;}
+  else if(p<25){card.classList.add('neut');sig('sg-vix','a','⚠️ VIX ELEVADO');g('d-vix').textContent='Precaucion. Reducir tamano. Ampliar stops.';_bVIX=0;}
+  else{card.classList.add('bear');sig('sg-vix','r','🔴 VIX PELIGROSO');g('d-vix').textContent='Mercado en panico. No operar o solo expertos.';_bVIX=-1;}
   const bv=g('b-vix');
   bv.textContent=_bVIX===1?'🟢 FAVORABLE':_bVIX===0?'🟡 PRECAUCIÓN':'🔴 PELIGROSO';
   bv.className='biv '+(_bVIX===1?'bull':_bVIX===0?'neut':'bear');

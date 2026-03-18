@@ -328,6 +328,18 @@ tr:last-child td{border-bottom:none}
         <textarea id="f-notes" placeholder="Ej: El precio barrió el pico del 12 de marzo con mecha de distribución en 15M. Entré SHORT sin esperar el CHoCH en 1M. El precio subió y me sacó el SL. Lección: sin CHoCH no hay entrada."></textarea>
       </div>
 
+      <!-- Imagen del setup -->
+      <div class="form-group full">
+        <label>📸 Screenshot del Setup — Link de TradingView</label>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input type="url" id="f-img" placeholder="https://www.tradingview.com/x/xxxxxxxx/" autocomplete="off" style="flex:1;min-width:200px">
+          <button class="img-btn" onclick="previewImg()" type="button">👁 Vista previa</button>
+        </div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:5px">
+          En TradingView: Cámara 📷 → "Take a snapshot" → copia el link
+        </div>
+      </div>
+
     </div>
     <div class="form-footer">
       <div>
@@ -366,6 +378,7 @@ tr:last-child td{border-bottom:none}
             <th>Reglas</th>
             <th>Estado</th>
             <th>Resultado</th>
+            <th>Setup</th>
             <th></th>
           </tr>
         </thead>
@@ -454,6 +467,7 @@ function saveTrade(){
   const tf      = g('f-tf').value;
   const emotion = parseInt(g('f-emotion').value);
   const notes   = g('f-notes').value.trim();
+  const imgUrl  = g('f-img').value.trim();
 
   if(!date || !currentDir || isNaN(entry) || isNaN(pnl)){
     alert('Completa al menos: Fecha, Dirección, Precio de entrada y P&L');
@@ -472,7 +486,7 @@ function saveTrade(){
     dir: currentDir,
     entry, exit: exit_p, sl, tp, pnl,
     bias1h, bias4h, rsi, result,
-    tf, emotion, notes, rules, rulesScore
+    tf, emotion, notes, imgUrl, rules, rulesScore
   };
 
   trades.unshift(trade);
@@ -495,7 +509,8 @@ function deleteTrade(id){
 // CLEAR FORM
 // ══════════════════════════════════════
 function clearForm(){
-  ['f-entry','f-exit','f-sl','f-tp','f-pnl','f-rsi','f-notes'].forEach(id => g(id).value = '');
+  ['f-entry','f-exit','f-sl','f-tp','f-pnl','f-rsi','f-notes','f-img'].forEach(id => g(id).value = '');
+
   g('f-emotion').value = 7; g('emo-val').textContent = '7';
   g('f-result').value = 'WIN';
   ['r1','r2','r3','r4','r5','r6'].forEach(id => {
@@ -584,6 +599,7 @@ function renderTable(){
       <td><div class="rules-score">${rulesDots}</div></td>
       <td style="color:${t.emotion>=7?'var(--green)':t.emotion>=4?'var(--yellow)':'var(--red)'}">${t.emotion||'—'}/10</td>
       <td><span class="tag ${resCls}">${t.result||'—'}</span></td>
+      <td>${t.imgUrl ? `<a href="${t.imgUrl}" target="_blank" class="img-btn" style="display:inline-block;padding:3px 8px;border:1px solid var(--blue);color:var(--blue);font-family:var(--mono);font-size:9px;text-decoration:none">📸 Ver</a>` : '<span style="color:var(--text3)">—</span>'}</td>
       <td><button class="del-btn" onclick="deleteTrade(${t.id})">✕</button></td>
     </tr>`;
   }).join('');
@@ -675,6 +691,14 @@ function g(id){ return document.getElementById(id); }
 // ══════════════════════════════════════
 // INIT
 // ══════════════════════════════════════
+
+function previewImg(){
+  const url = g('f-img').value.trim();
+  if(!url){ alert('Pega primero el link de TradingView'); return; }
+  if(!url.startsWith('http')){ alert('El link debe empezar con https://'); return; }
+  window.open(url, '_blank');
+}
+
 render();
 </script>
 </body>

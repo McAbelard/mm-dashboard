@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MM Tracker — Panel Report</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c10;
+    --bg2: #0d1318;
+    --bg3: #111820;
+    --border: #1e2d3d;
+    --green: #00ff88;
+    --green-dim: #00c86633;
+    --red: #ff3a3a;
+    --red-dim: #ff3a3a22;
+    --yellow: #ffd24d;
+    --yellow-dim: #ffd24d22;
+    --blue: #4db8ff;
+    --blue-dim: #4db8ff22;
+    --text: #c8d8e8;
+    --text-dim: #445566;
+    --mono: 'Share Tech Mono', monospace;
+    --sans: 'Rajdhani', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    padding: 14px;
+    background-image:
+      radial-gradient(ellipse at 10% 0%, #0a2a1a18 0%, transparent 55%),
+      radial-gradient(ellipse at 90% 100%, #0a1a2a18 0%, transparent 55%);
+  }
+
+  header {
+    text-align: center;
+    padding: 16px 0 18px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 14px;
+  }
+
+  header h1 {
+    font-family: var(--mono);
+    font-size: 1rem;
+    letter-spacing: 4px;
+    color: var(--green);
+    text-shadow: 0 0 16px var(--green);
+  }
+
+  header p {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    margin-top: 3px;
+  }
+
+  /* TABLA PRINCIPAL */
+  .panel-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 12px;
+  }
+
+  .panel-table tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+
+  .panel-table tr:hover { background: #0d151e; }
+
+  /* Separadores de sección */
+  .section-row td {
+    background: var(--bg3);
+    font-family: var(--mono);
+    font-size: 0.58rem;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    padding: 5px 10px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Celda izquierda — label */
+  .label-cell {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    padding: 7px 10px;
+    white-space: nowrap;
+    width: 38%;
+    vertical-align: middle;
+  }
+
+  /* Celda derecha — opciones */
+  .opts-cell {
+    padding: 5px 6px;
+    vertical-align: middle;
+  }
+
+  .opts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .opt {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    padding: 4px 9px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.12s;
+    user-select: none;
+    white-space: nowrap;
+  }
+
+  .opt:active { transform: scale(0.96); }
+
+  /* Estados seleccionados */
+  .opt.sel-green { border-color: var(--green); background: var(--green-dim); color: var(--green); }
+  .opt.sel-red   { border-color: var(--red);   background: var(--red-dim);   color: var(--red);   }
+  .opt.sel-yellow{ border-color: var(--yellow); background: var(--yellow-dim);color: var(--yellow);}
+  .opt.sel-blue  { border-color: var(--blue);   background: var(--blue-dim);  color: var(--blue);  }
+
+  /* Input precio */
+  .price-input {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--green);
+    padding: 4px 10px;
+    width: 130px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .price-input:focus { border-color: var(--green); }
+  .price-input::placeholder { color: var(--text-dim); }
+
+  /* Resumen generado */
+  #resumen-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    line-height: 1.8;
+    color: var(--text);
+    white-space: pre-wrap;
+    min-height: 60px;
+    margin-bottom: 10px;
+    transition: border-color 0.3s;
+  }
+
+  #resumen-box.has-content { border-color: #2a3d2a; }
+
+  /* Botones de acción */
+  .actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn {
+    flex: 1;
+    padding: 11px;
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .btn-copy {
+    background: var(--green-dim);
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  .btn-copy:hover { background: #00c86655; box-shadow: 0 0 12px var(--green-dim); }
+  .btn-copy.copied { background: var(--green); color: var(--bg); }
+
+  .btn-reset {
+    background: transparent;
+    border-color: var(--border);
+    color: var(--text-dim);
+    flex: 0.4;
+  }
+
+  .btn-reset:hover { border-color: var(--red); color: var(--red); }
+
+  /* Valor actual en label */
+  .current-val {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    margin-left: 4px;
+  }
+
+  .cv-green  { color: var(--green); }
+  .cv-red    { color: var(--red); }
+  .cv-yellow { color: var(--yellow); }
+  .cv-blue   { color: var(--blue); }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 0.58rem;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    padding: 8px 0 4px;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>MM TRACKER — PANEL REPORT</h1>
+  <p>NAS100 · REPORTE RÁPIDO DE SESIÓN</p>
+</header>
+
+<table class="panel-table">
+
+  <!-- SECCIÓN EMAs -->
+  <tr class="section-row"><td colspan="2">— EMAs —</td></tr>
+
+  <tr>
+    <td class="label-cell">EMA 1H <span class="current-val" id="cv-ema1h"></span></td>
+    <td class="opts-cell"><div class="opts">
+      <div class="opt" data-field="ema1h" data-val="50>200 BULL" data-color="green" onclick="sel(this)">📈 50&gt;200 BULL</div>
+      <div class="opt" data-field="ema1h" data-val="50<200 BEAR" data-color="red"   onclick="sel(this)">📉 50&lt;200 BEAR</div>
+    </div></td>
+  </tr>
+
+  <tr>
+    <td class="label-cell">EMA 4H <span class="current-val" id="cv-ema4h"></span></td>
+    <td class="opts-cell"><div class="opts">
+      <div class="opt" data-field="ema4h" data-val="50>200 BULL" data-color="green" onclick="sel(this)">📈 50&gt;200 BULL</div>
+      <div class="opt" data-field="ema4h" data-val="50<200 BEAR" data-color="red"   onclick="sel(this)">📉 50&lt;200 BEAR</div>
+    </div></td>
+  </tr>
+
+  <tr>
+    <td class="label-cell">vs EMA200 1H <span class="current-val" id="cv-ema200"></span></td>
+    <td class="opts-cell"><div class="opts">
+      <div class="opt" data-field="ema200" data-val="Sobre EMA200"  data-color="green"  onclick="sel(this)">📈 Sobre EMA200</div>
+      <div class="opt" data-field="ema200" data-val="Bajo EMA200"   data-color="red"    onclick="sel(this)">📉 Bajo EMA200</div>
+      <div class="opt" data-field="ema200" data-val="En EMA200"     data-color="yellow" onclick="sel(this)">⏸ En EMA200</div>
+    </div></td>
+  </tr>
+
+  <!-- SECCIÓN RSI -->
+  <tr class="section-row"><td colspan="2">— RSI MTF —</td></tr>
+
+  <tr>
+    <td class="label-cell">RSI 4H <span class="current-val" id="cv-rsi4h"></span></td>
+    <td class="opts-cell"><div class="opts">
+      <div class="opt" data-field="rsi4h" data-val="SOBREVENTA (<30)"    data-color="red"    onclick="sel(this)">📉 SOBREVENTA</div>
+      <div class="opt" data-field="rsi4h" data-val="MOMENTUM- (30-45)"   data-color="red"    onclick="sel(this)">📉 MOMENTUM-</div>
+      <div class="opt" data-field="rsi4h" data-val="NEUTRO (45-55)"      data-color="yellow" onclick="sel(this)">⏸ NEUTRO</div>
+      <div class="opt" data-field="rsi4h" data-val="MOMENTUM+ (55-70)"   data-color="green"  onclick="sel(this)">📈 MOMENTUM+</div>
+      <div class="opt" data-field="rsi4h" data-val="SOBRECOMPRA (>70)"   data-color="green"  onclick="sel(this)">📈 SOBRECOMPRA</div>
+    </div></td>
+  </tr>
+
+  <tr>
+    <td class="label-cell">RSI 1H <span class="current-val" id="cv-rsi1h"></span></td>
+    <td class="opts-cell"><div class="opts">
+      <div class="opt" data-field="rsi1h" data-val="SOBREVENTA (<30)"    data-color="red"    onclick="sel(this)">📉 SOBREVENTA</div>
+      <div class="opt" data-field="rsi1h" data-val="MOMENTUM- (30-45)"   data-color="red"    onclick="sel(this)">📉 MOMENTUM-</div>
+      <div class="opt" data-field="rsi1h" data-val="NEUTRO (45-55)"      data-color="yellow" onclick="sel(this)">⏸ NEUTRO</div>
+      <div class="opt" data-field="rsi1h" data-val="MOMENTUM+ (55-70)"   data-color="green"  onclick="sel(this)">📈 MOMENTUM+</div>
+      <div class="opt" data-field="rsi1h" data-val="SOBRECOMPRA (>70)"   data-color="green"  onclick="sel(this)">📈 SOBRECOMPRA</div>
+    </div></td>
+  </tr>
+
+  <tr>
+    <td class="label-cell">RSI 15M <span class="current-val" id="cv-rsi15m"></span></td>
+    <td class="opts-cell"><div class="opts">
+      <div class="opt" data-field="rsi15m" data-val="SOBREVENTA (<30)"    data-color="red"    onclick="sel(this)">📉 SOBREVENTA</div>
+      <div class="opt" data-field="rsi15m" data-val="MOMENTUM- (30-45)"   data-color="red"    onclick="sel(this)">📉 MOMENTUM-</div>
+      <div class="opt" data-field="rsi15m" data-val="NEUTRO (45-55)"      data-color="yellow" onclick="sel(this)">⏸ NEUTRO</div>
+      <div class="opt" data-field="rsi15m" data-val="MOMENTUM+ (55-70)"   data-color="green"  onclick="sel(this)">📈 MOMENTUM+</div>
+      <div class="opt" data-field="rsi15m" data-val="SOBRECOMPRA (>70)"   data-color="green"  onclick="sel(this)">📈 SOBRECOMPRA</div>
+    </div></td>
+  </tr>
+
+  <!-- SECCIÓN OPERABILIDAD -->
+  <tr class="section-row"><td colspan="2">— OPERABILIDAD —</td></tr>
+
+  <tr>
+    <td class="label-cell">Operabilidad <span class="current-val" id="cv-oper"></span></td>
+    <td class="opts-cell"><div class="opts">
+      <div class="opt" data-field="oper" data-val="OPERABLE"   data-color="green"  onclick="sel(this)">✅ OPERABLE</div>
+      <div class="opt" data-field="oper" data-val="PRECAUCIÓN" data-color="yellow" onclick="sel(this)">⚠️ PRECAUCIÓN</div>
+      <div class="opt" data-field="oper" data-val="EVITAR"     data-color="red"    onclick="sel(this)">⛔ EVITAR</div>
+    </div></td>
+  </tr>
+
+  <tr>
+    <td class="label-cell">Divergencia <span class="current-val" id="cv-div"></span></td>
+    <td class="opts-cell"><div class="opts">
+      <div class="opt" data-field="div" data-val="Sin divergencia" data-color="green"  onclick="sel(this)">✅ Sin div</div>
+      <div class="opt" data-field="div" data-val="DIV ALCISTA"     data-color="green"  onclick="sel(this)">📈 DIV ALC</div>
+      <div class="opt" data-field="div" data-val="DIV BAJISTA"     data-color="red"    onclick="sel(this)">📉 DIV BAJ</div>
+    </div></td>
+  </tr>
+
+  <!-- SECCIÓN BIAS -->
+  <tr class="section-row"><td colspan="2">— BIAS —</td></tr>
+
+  <tr>
+    <td class="label-cell">Bias 1H <span class="current-val" id="cv-bias1h"></span></td>
+    <td class="opts-cell"><div class="opts">
+      <div class="opt" data-field="bias1h" data-val="ALCISTA" data-color="green"  onclick="sel(this)">📈 ALCISTA</div>
+      <div class="opt" data-field="bias1h" data-val="NEUTRO"  data-color="yellow" onclick="sel(this)">⏸ NEUTRO</div>
+      <div class="opt" data-field="bias1h" data-val="BAJISTA" data-color="red"    onclick="sel(this)">📉 BAJISTA</div>
+    </div></td>
+  </tr>
+
+  <tr>
+    <td class="label-cell">Bias 4H <span class="current-val" id="cv-bias4h"></span></td>
+    <td class="opts-cell"><div class="opts">
+      <div class="opt" data-field="bias4h" data-val="ALCISTA" data-color="green"  onclick="sel(this)">📈 ALCISTA</div>
+      <div class="opt" data-field="bias4h" data-val="NEUTRO"  data-color="yellow" onclick="sel(this)">⏸ NEUTRO</div>
+      <div class="opt" data-field="bias4h" data-val="BAJISTA" data-color="red"    onclick="sel(this)">📉 BAJISTA</div>
+    </div></td>
+  </tr>
+
+  <!-- SECCIÓN DIRECCIÓN -->
+  <tr class="section-row"><td colspan="2">— DIRECCIÓN —</td></tr>
+
+  <tr>
+    <td class="label-cell">Dirección <span class="current-val" id="cv-dir"></span></td>
+    <td class="opts-cell"><div class="opts">
+      <div class="opt" data-field="dir" data-val="LONG"       data-color="green"  onclick="sel(this)">📈 LONG</div>
+      <div class="opt" data-field="dir" data-val="LEVE LONG"  data-color="yellow" onclick="sel(this)">📈 LEVE LONG</div>
+      <div class="opt" data-field="dir" data-val="ESPERAR"    data-color="yellow" onclick="sel(this)">⏸ ESPERAR</div>
+      <div class="opt" data-field="dir" data-val="LEVE SHORT" data-color="yellow" onclick="sel(this)">📉 LEVE SHORT</div>
+      <div class="opt" data-field="dir" data-val="SHORT"      data-color="red"    onclick="sel(this)">📉 SHORT</div>
+    </div></td>
+  </tr>
+
+  <!-- SECCIÓN LONDON SWEEP -->
+  <tr class="section-row"><td colspan="2">— LONDON SWEEP —</td></tr>
+
+  <tr>
+    <td class="label-cell">London Sweep <span class="current-val" id="cv-sweep"></span></td>
+    <td class="opts-cell"><div class="opts">
+      <div class="opt" data-field="sweep" data-val="ALTOS → Buscar Ventas"   data-color="red"    onclick="sel(this)">📉 ALTOS (Ventas)</div>
+      <div class="opt" data-field="sweep" data-val="BAJOS → Buscar Compras"  data-color="green"  onclick="sel(this)">📈 BAJOS (Compras)</div>
+      <div class="opt" data-field="sweep" data-val="Doble Barrido"            data-color="yellow" onclick="sel(this)">⏸ Doble Barrido</div>
+      <div class="opt" data-field="sweep" data-val="Tokio Sweep"              data-color="yellow" onclick="sel(this)">⏸ Tokio Sweep</div>
+      <div class="opt" data-field="sweep" data-val="Sin sweep claro"          data-color="red"    onclick="sel(this)">⛔ Sin sweep</div>
+    </div></td>
+  </tr>
+
+  <!-- SECCIÓN INFO -->
+  <tr class="section-row"><td colspan="2">— INFO —</td></tr>
+
+  <tr>
+    <td class="label-cell">Sesión <span class="current-val" id="cv-sesion"></span></td>
+    <td class="opts-cell"><div class="opts">
+      <div class="opt" data-field="sesion" data-val="TOKIO"           data-color="blue"   onclick="sel(this)">🟣 TOKIO</div>
+      <div class="opt" data-field="sesion" data-val="LONDRES"         data-color="green"  onclick="sel(this)">🟢 LONDRES</div>
+      <div class="opt" data-field="sesion" data-val="VENTANA 05-07"   data-color="yellow" onclick="sel(this)">⬜ VENTANA</div>
+      <div class="opt" data-field="sesion" data-val="NY KZ OPEN"      data-color="blue"   onclick="sel(this)">🟠 NY OPEN</div>
+      <div class="opt" data-field="sesion" data-val="NY MID"          data-color="blue"   onclick="sel(this)">🟠 NY MID</div>
+      <div class="opt" data-field="sesion" data-val="NY CLOSE"        data-color="blue"   onclick="sel(this)">🟠 NY CLOSE</div>
+    </div></td>
+  </tr>
+
+  <tr>
+    <td class="label-cell">TF <span class="current-val" id="cv-tf"></span></td>
+    <td class="opts-cell"><div class="opts">
+      <div class="opt" data-field="tf" data-val="15M ANÁLISIS" data-color="blue" onclick="sel(this)">15M</div>
+      <div class="opt" data-field="tf" data-val="1M SNIPER"    data-color="green" onclick="sel(this)">1M SNIPER</div>
+      <div class="opt" data-field="tf" data-val="1H"           data-color="blue" onclick="sel(this)">1H</div>
+      <div class="opt" data-field="tf" data-val="4H"           data-color="blue" onclick="sel(this)">4H</div>
+    </div></td>
+  </tr>
+
+  <tr>
+    <td class="label-cell">Precio</td>
+    <td class="opts-cell">
+      <input class="price-input" type="number" id="precio-input" placeholder="24,500.00" oninput="buildResumen()">
+    </td>
+  </tr>
+
+</table>
+
+<!-- RESUMEN -->
+<div id="resumen-box">Selecciona las opciones para generar el reporte...</div>
+
+<!-- BOTONES -->
+<div class="actions">
+  <button class="btn btn-copy" id="btn-copy" onclick="copyResumen()">
+    <span>📋</span><span>COPIAR REPORTE</span>
+  </button>
+  <button class="btn btn-reset" onclick="resetAll()">↺ RESET</button>
+</div>
+
+<script>
+  const state = {};
+
+  function sel(el) {
+    const field = el.dataset.field;
+    const val   = el.dataset.val;
+    const color = el.dataset.color;
+
+    // Deselect siblings
+    document.querySelectorAll(`[data-field="${field}"]`).forEach(o => {
+      o.classList.remove('sel-green','sel-red','sel-yellow','sel-blue');
+    });
+
+    // Select this
+    el.classList.add('sel-' + color);
+    state[field] = { val, color };
+
+    // Update current value indicator in label
+    const cv = document.getElementById('cv-' + field);
+    if (cv) {
+      cv.textContent = '· ' + val;
+      cv.className = 'current-val cv-' + color;
+    }
+
+    buildResumen();
+  }
+
+  function buildResumen() {
+    const precio = document.getElementById('precio-input').value;
+
+    const g = (f) => state[f] ? state[f].val : '—';
+
+    const lines = [
+      '═══ MM TRACKER — PANEL REPORT ═══',
+      '',
+      '[ EMAs ]',
+      `EMA 1H      → ${g('ema1h')}`,
+      `EMA 4H      → ${g('ema4h')}`,
+      `vs EMA200   → ${g('ema200')}`,
+      '',
+      '[ RSI MTF ]',
+      `RSI 4H      → ${g('rsi4h')}`,
+      `RSI 1H      → ${g('rsi1h')}`,
+      `RSI 15M     → ${g('rsi15m')}`,
+      '',
+      '[ PANEL ]',
+      `Operabilidad→ ${g('oper')}`,
+      `Divergencia → ${g('div')}`,
+      `Bias 1H     → ${g('bias1h')}`,
+      `Bias 4H     → ${g('bias4h')}`,
+      '',
+      '[ DIRECCIÓN ]',
+      `Dirección   → ${g('dir')}`,
+      '',
+      '[ SWEEP ]',
+      `London Sweep→ ${g('sweep')}`,
+      '',
+      '[ INFO ]',
+      `Sesión      → ${g('sesion')}`,
+      `TF          → ${g('tf')}`,
+      `Precio      → ${precio || '—'}`,
+      '',
+      '══════════════════════════════════',
+    ];
+
+    const box = document.getElementById('resumen-box');
+    box.textContent = lines.join('\n');
+    box.classList.add('has-content');
+  }
+
+  function copyResumen() {
+    const text = document.getElementById('resumen-box').textContent;
+    if (text.includes('Selecciona')) return;
+
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById('btn-copy');
+      btn.classList.add('copied');
+      btn.querySelector('span:last-child').textContent = '¡COPIADO!';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.querySelector('span:last-child').textContent = 'COPIAR REPORTE';
+      }, 2000);
+    });
+  }
+
+  function resetAll() {
+    // Clear state
+    Object.keys(state).forEach(k => delete state[k]);
+
+    // Clear selections
+    document.querySelectorAll('.opt').forEach(o => {
+      o.classList.remove('sel-green','sel-red','sel-yellow','sel-blue');
+    });
+
+    // Clear current value labels
+    document.querySelectorAll('.current-val').forEach(cv => {
+      cv.textContent = '';
+    });
+
+    // Clear price
+    document.getElementById('precio-input').value = '';
+
+    // Reset resumen
+    const box = document.getElementById('resumen-box');
+    box.textContent = 'Selecciona las opciones para generar el reporte...';
+    box.classList.remove('has-content');
+  }
+</script>
+</body>
+</html>

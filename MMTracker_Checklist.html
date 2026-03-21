@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MM Tracker — Checklist</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c10;
+    --bg2: #0d1318;
+    --bg3: #111820;
+    --border: #1e2d3d;
+    --green: #00ff88;
+    --green-dim: #00c86644;
+    --red: #ff3a3a;
+    --red-dim: #ff3a3a33;
+    --yellow: #ffd24d;
+    --yellow-dim: #ffd24d33;
+    --blue: #4db8ff;
+    --text: #c8d8e8;
+    --text-dim: #556677;
+    --mono: 'Share Tech Mono', monospace;
+    --sans: 'Rajdhani', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    padding: 16px;
+    background-image: 
+      radial-gradient(ellipse at 20% 0%, #0a2a1a22 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 100%, #0a1a2a22 0%, transparent 60%);
+  }
+
+  header {
+    text-align: center;
+    padding: 20px 0 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+
+  header h1 {
+    font-family: var(--mono);
+    font-size: 1.1rem;
+    letter-spacing: 4px;
+    color: var(--green);
+    text-shadow: 0 0 20px var(--green);
+  }
+
+  header p {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    margin-top: 4px;
+  }
+
+  .rule-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .rule-card.green { border-color: var(--green); background: linear-gradient(135deg, var(--bg2), #0a1f14); }
+  .rule-card.red { border-color: var(--red); background: linear-gradient(135deg, var(--bg2), #1f0a0a); }
+  .rule-card.neutral { border-color: var(--border); }
+
+  .rule-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    cursor: pointer;
+  }
+
+  .rule-num {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    min-width: 20px;
+  }
+
+  .rule-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    flex: 1;
+    color: var(--text);
+  }
+
+  .rule-status {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    border-radius: 3px;
+    min-width: 60px;
+    text-align: center;
+  }
+
+  .rule-status.green { background: var(--green-dim); color: var(--green); }
+  .rule-status.red { background: var(--red-dim); color: var(--red); }
+  .rule-status.neutral { background: var(--bg3); color: var(--text-dim); }
+
+  .rule-body {
+    padding: 0 14px 12px;
+    display: none;
+  }
+
+  .rule-body.open { display: block; }
+
+  .options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+  }
+
+  .opt {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    padding: 5px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.5px;
+  }
+
+  .opt:hover { border-color: var(--blue); color: var(--blue); }
+  .opt.selected-green { border-color: var(--green); background: var(--green-dim); color: var(--green); }
+  .opt.selected-red { border-color: var(--red); background: var(--red-dim); color: var(--red); }
+  .opt.selected-neutral { border-color: var(--yellow); background: var(--yellow-dim); color: var(--yellow); }
+
+  /* Slider emocional */
+  .slider-wrap { margin-top: 8px; }
+
+  .slider-labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+
+  input[type=range] {
+    width: 100%;
+    -webkit-appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    outline: none;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--green);
+    cursor: pointer;
+    box-shadow: 0 0 10px var(--green);
+    transition: background 0.2s;
+  }
+
+  .slider-val {
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 1.3rem;
+    margin-top: 6px;
+    color: var(--green);
+  }
+
+  /* Resultado */
+  #resultado {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    margin-top: 16px;
+    text-align: center;
+  }
+
+  #resultado .score {
+    font-family: var(--mono);
+    font-size: 2.5rem;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  #resultado .veredicto {
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+
+  #resultado .lote {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+
+  #resultado .alerta {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--red);
+    margin-top: 6px;
+    padding: 6px 10px;
+    border: 1px solid var(--red-dim);
+    border-radius: 4px;
+    background: var(--red-dim);
+    display: none;
+  }
+
+  .green-text { color: var(--green); }
+  .red-text { color: var(--red); }
+  .yellow-text { color: var(--yellow); }
+
+  .dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin: 10px 0 6px;
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    transition: all 0.2s;
+  }
+
+  .dot.green { background: var(--green); border-color: var(--green); box-shadow: 0 0 6px var(--green); }
+  .dot.red { background: var(--red); border-color: var(--red); }
+
+  .reset-btn {
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .reset-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+  .choch-warning {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--red);
+    text-align: center;
+    padding: 6px;
+    margin-top: 8px;
+    border: 1px solid var(--red-dim);
+    border-radius: 4px;
+    background: var(--red-dim);
+    display: none;
+  }
+
+  .progress-bar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 10px 0;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.3s, background 0.3s;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>MM TRACKER — CHECKLIST</h1>
+  <p>NAS100 · PROTOCOLO 6 REGLAS</p>
+</header>
+
+<!-- REGLA 1 -->
+<div class="rule-card neutral" id="card-1">
+  <div class="rule-header" onclick="toggleCard(1)">
+    <span class="rule-num">01</span>
+    <span class="rule-title">CHoCH en 1M</span>
+    <span class="rule-status neutral" id="status-1">—</span>
+  </div>
+  <div class="rule-body" id="body-1">
+    <div class="options">
+      <div class="opt" onclick="selectOpt(1, this, 'green')">✅ SÍ — Confirmado</div>
+      <div class="opt" onclick="selectOpt(1, this, 'red')">❌ NO — Sin CHoCH</div>
+      <div class="opt" onclick="selectOpt(1, this, 'red')">❌ Solo en 15M</div>
+      <div class="opt" onclick="selectOpt(1, this, 'red')">❌ Múltiples / Ruido</div>
+    </div>
+    <div class="choch-warning" id="choch-warn">SIN CHOCH NO HAY ENTRADA — REGLA ABSOLUTA</div>
+  </div>
+</div>
+
+<!-- REGLA 2 -->
+<div class="rule-card neutral" id="card-2">
+  <div class="rule-header" onclick="toggleCard(2)">
+    <span class="rule-num">02</span>
+    <span class="rule-title">Panel — Dirección Clara</span>
+    <span class="rule-status neutral" id="status-2">—</span>
+  </div>
+  <div class="rule-body" id="body-2">
+    <div class="options">
+      <div class="opt" onclick="selectOpt(2, this, 'green')">📈 LONG</div>
+      <div class="opt" onclick="selectOpt(2, this, 'green')">📉 SHORT</div>
+      <div class="opt" onclick="selectOpt(2, this, 'neutral')">📈 LEVE LONG</div>
+      <div class="opt" onclick="selectOpt(2, this, 'neutral')">📉 LEVE SHORT</div>
+      <div class="opt" onclick="selectOpt(2, this, 'red')">⏸ ESPERAR</div>
+      <div class="opt" onclick="selectOpt(2, this, 'red')">⏸ PRECAUCIÓN</div>
+      <div class="opt" onclick="selectOpt(2, this, 'red')">⛔ EVITAR</div>
+    </div>
+  </div>
+</div>
+
+<!-- REGLA 3 -->
+<div class="rule-card neutral" id="card-3">
+  <div class="rule-header" onclick="toggleCard(3)">
+    <span class="rule-num">03</span>
+    <span class="rule-title">OB / FVG Premium en Zona</span>
+    <span class="rule-status neutral" id="status-3">—</span>
+  </div>
+  <div class="rule-body" id="body-3">
+    <div class="options">
+      <div class="opt" onclick="selectOpt(3, this, 'green')">📊 OB Válido</div>
+      <div class="opt" onclick="selectOpt(3, this, 'green')">📊 FVG / IFVG</div>
+      <div class="opt" onclick="selectOpt(3, this, 'green')">📊 OB + FVG Confluencia</div>
+      <div class="opt" onclick="selectOpt(3, this, 'red')">📉 Sin zona clara</div>
+      <div class="opt" onclick="selectOpt(3, this, 'red')">📉 Zona incorrecta (Discount/Premium)</div>
+    </div>
+  </div>
+</div>
+
+<!-- REGLA 4 -->
+<div class="rule-card neutral" id="card-4">
+  <div class="rule-header" onclick="toggleCard(4)">
+    <span class="rule-num">04</span>
+    <span class="rule-title">London Sweep — Sesgo</span>
+    <span class="rule-status neutral" id="status-4">—</span>
+  </div>
+  <div class="rule-body" id="body-4">
+    <div class="options">
+      <div class="opt" onclick="selectOpt(4, this, 'green')">📉 ALTOS → voy SHORT</div>
+      <div class="opt" onclick="selectOpt(4, this, 'green')">📈 BAJOS → voy LONG</div>
+      <div class="opt" onclick="selectOpt(4, this, 'red')">📉 ALTOS → voy LONG (contra)</div>
+      <div class="opt" onclick="selectOpt(4, this, 'red')">📈 BAJOS → voy SHORT (contra)</div>
+      <div class="opt" onclick="selectOpt(4, this, 'neutral')">⏸ Tokio Sweep (no Londres)</div>
+      <div class="opt" onclick="selectOpt(4, this, 'red')">⛔ Sin sweep claro</div>
+    </div>
+  </div>
+</div>
+
+<!-- REGLA 5 -->
+<div class="rule-card neutral" id="card-5">
+  <div class="rule-header" onclick="toggleCard(5)">
+    <span class="rule-num">05</span>
+    <span class="rule-title">Bias 1H y 4H Alineados</span>
+    <span class="rule-status neutral" id="status-5">—</span>
+  </div>
+  <div class="rule-body" id="body-5">
+    <div class="options">
+      <div class="opt" onclick="selectOpt(5, this, 'green')">📈 Ambos ALCISTAS</div>
+      <div class="opt" onclick="selectOpt(5, this, 'green')">📉 Ambos BAJISTAS</div>
+      <div class="opt" onclick="selectOpt(5, this, 'neutral')">📈 1H Alcista / 4H Neutro</div>
+      <div class="opt" onclick="selectOpt(5, this, 'neutral')">📉 1H Bajista / 4H Neutro</div>
+      <div class="opt" onclick="selectOpt(5, this, 'red')">⛔ Opuestos</div>
+      <div class="opt" onclick="selectOpt(5, this, 'red')">⏸ Ambos Neutros</div>
+    </div>
+  </div>
+</div>
+
+<!-- REGLA 6 -->
+<div class="rule-card neutral" id="card-6">
+  <div class="rule-header" onclick="toggleCard(6)">
+    <span class="rule-num">06</span>
+    <span class="rule-title">Estado Emocional</span>
+    <span class="rule-status neutral" id="status-6">—</span>
+  </div>
+  <div class="rule-body" id="body-6">
+    <div class="slider-wrap">
+      <div class="slider-labels">
+        <span>0 — Destruido</span>
+        <span>5 — Neutro</span>
+        <span>10 — Perfecto</span>
+      </div>
+      <input type="range" min="0" max="10" value="5" id="slider-emo" oninput="updateSlider(this.value)">
+      <div class="slider-val" id="slider-display">5/10</div>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTADO -->
+<div id="resultado">
+  <div class="dots" id="dots-container">
+    <div class="dot" id="d1"></div>
+    <div class="dot" id="d2"></div>
+    <div class="dot" id="d3"></div>
+    <div class="dot" id="d4"></div>
+    <div class="dot" id="d5"></div>
+    <div class="dot" id="d6"></div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progress" style="width:0%;background:var(--border)"></div></div>
+  <div class="score" id="score-display"><span class="green-text">0</span>/6</div>
+  <div class="veredicto" id="veredicto" style="color:var(--text-dim)">COMPLETA LAS REGLAS</div>
+  <div class="lote" id="lote-display"></div>
+  <div class="alerta" id="alerta-choch">⚠ SIN CHOCH = 0% LOTE — SIN EXCEPCIÓN</div>
+</div>
+
+<button class="reset-btn" onclick="resetAll()">↺ RESET — NUEVA SESIÓN</button>
+
+<script>
+  const rules = {
+    1: null, 2: null, 3: null, 4: null, 5: null, 6: null
+  };
+
+  // Inicializar slider
+  updateSlider(5);
+
+  function toggleCard(n) {
+    const body = document.getElementById('body-' + n);
+    body.classList.toggle('open');
+  }
+
+  function selectOpt(ruleNum, el, type) {
+    // Deselect all in same rule
+    const parent = el.parentElement;
+    parent.querySelectorAll('.opt').forEach(o => {
+      o.classList.remove('selected-green', 'selected-red', 'selected-neutral');
+    });
+
+    // Select this
+    el.classList.add('selected-' + type);
+
+    // Store result
+    // green = full point, neutral = 0.5, red = 0
+    rules[ruleNum] = type;
+
+    updateStatus(ruleNum, type, el.textContent.trim());
+    updateResult();
+
+    // CHoCH warning
+    if (ruleNum === 1) {
+      const warn = document.getElementById('choch-warn');
+      warn.style.display = (type === 'red') ? 'block' : 'none';
+    }
+  }
+
+  function updateStatus(n, type, text) {
+    const status = document.getElementById('status-' + n);
+    const card = document.getElementById('card-' + n);
+
+    // Short label
+    let label = type === 'green' ? '✅ OK' : type === 'red' ? '❌ NO' : '⚠ LEVE';
+    status.textContent = label;
+    status.className = 'rule-status ' + type;
+    card.className = 'rule-card ' + type;
+  }
+
+  function updateSlider(val) {
+    val = parseInt(val);
+    const display = document.getElementById('slider-display');
+    display.textContent = val + '/10';
+
+    let type, color;
+    if (val >= 5) {
+      type = 'green'; color = 'var(--green)';
+    } else if (val >= 3) {
+      type = 'neutral'; color = 'var(--yellow)';
+    } else {
+      type = 'red'; color = 'var(--red)';
+    }
+
+    display.style.color = color;
+    rules[6] = type;
+    updateStatus(6, type, val + '/10');
+    updateResult();
+  }
+
+  function updateResult() {
+    let greenCount = 0;
+    let halfCount = 0;
+    let chochRed = rules[1] === 'red';
+
+    for (let i = 1; i <= 6; i++) {
+      if (rules[i] === 'green') greenCount++;
+      else if (rules[i] === 'neutral') halfCount++;
+    }
+
+    // Score display (count greens fully, neutrals as 0.5)
+    const totalFilled = Object.values(rules).filter(v => v !== null).length;
+    const scoreNum = greenCount + (halfCount * 0.5);
+    const scoreInt = Math.floor(scoreNum); // for display
+
+    // Update dots
+    for (let i = 1; i <= 6; i++) {
+      const dot = document.getElementById('d' + i);
+      if (rules[i] === 'green') { dot.className = 'dot green'; }
+      else if (rules[i] === 'red') { dot.className = 'dot red'; }
+      else if (rules[i] === 'neutral') { dot.className = 'dot'; dot.style.background = 'var(--yellow)'; dot.style.borderColor = 'var(--yellow)'; }
+      else { dot.className = 'dot'; dot.style.background = ''; dot.style.borderColor = ''; }
+    }
+
+    // Progress bar
+    const pct = (scoreNum / 6) * 100;
+    const prog = document.getElementById('progress');
+    prog.style.width = pct + '%';
+    prog.style.background = pct >= 83 ? 'var(--green)' : pct >= 66 ? 'var(--yellow)' : 'var(--red)';
+
+    // Score
+    const scoreEl = document.getElementById('score-display');
+    const colorClass = greenCount >= 5 ? 'green-text' : greenCount >= 4 ? 'yellow-text' : 'red-text';
+    scoreEl.innerHTML = `<span class="${colorClass}">${greenCount}</span>/6`;
+
+    // Veredicto y lote
+    const v = document.getElementById('veredicto');
+    const l = document.getElementById('lote-display');
+    const alertaChoch = document.getElementById('alerta-choch');
+
+    if (totalFilled < 6) {
+      v.textContent = 'COMPLETA LAS REGLAS';
+      v.style.color = 'var(--text-dim)';
+      l.textContent = '';
+      alertaChoch.style.display = 'none';
+      return;
+    }
+
+    // CHoCH roto = 0% siempre
+    if (chochRed) {
+      v.textContent = 'SIN ENTRADA';
+      v.style.color = 'var(--red)';
+      l.textContent = 'CHoCH no confirmado — 0% lote';
+      alertaChoch.style.display = 'block';
+      return;
+    }
+
+    alertaChoch.style.display = 'none';
+
+    if (greenCount === 6) {
+      v.textContent = '📊 ENTRADA OBLIGATORIA';
+      v.style.color = 'var(--green)';
+      l.textContent = 'LOTE COMPLETO — 100%';
+    } else if (greenCount === 5) {
+      v.textContent = '📈 ENTRADA REDUCIDA';
+      v.style.color = 'var(--yellow)';
+      l.textContent = 'LOTE 50% — Una regla rota (no CHoCH)';
+    } else if (greenCount === 4 || (greenCount === 3 && halfCount >= 2)) {
+      v.textContent = '👁 SOLO OBSERVAR';
+      v.style.color = 'var(--yellow)';
+      l.textContent = 'NO ENTRAR — Insuficientes confirmaciones';
+    } else {
+      v.textContent = '⛔ NO OPERAR';
+      v.style.color = 'var(--red)';
+      l.textContent = 'Contexto no apto — Protege el capital';
+    }
+  }
+
+  function resetAll() {
+    for (let i = 1; i <= 6; i++) {
+      rules[i] = null;
+      document.getElementById('card-' + i).className = 'rule-card neutral';
+      document.getElementById('status-' + i).textContent = '—';
+      document.getElementById('status-' + i).className = 'rule-status neutral';
+      document.getElementById('body-' + i).classList.remove('open');
+      document.querySelectorAll('#body-' + i + ' .opt').forEach(o => {
+        o.classList.remove('selected-green', 'selected-red', 'selected-neutral');
+      });
+      const dot = document.getElementById('d' + i);
+      dot.className = 'dot';
+      dot.style.background = '';
+      dot.style.borderColor = '';
+    }
+    document.getElementById('choch-warn').style.display = 'none';
+    document.getElementById('alerta-choch').style.display = 'none';
+    document.getElementById('score-display').innerHTML = '<span class="green-text">0</span>/6';
+    document.getElementById('veredicto').textContent = 'COMPLETA LAS REGLAS';
+    document.getElementById('veredicto').style.color = 'var(--text-dim)';
+    document.getElementById('lote-display').textContent = '';
+    document.getElementById('progress').style.width = '0%';
+    document.getElementById('progress').style.background = 'var(--border)';
+    document.getElementById('slider-emo').value = 5;
+    updateSlider(5);
+  }
+</script>
+</body>
+</html>

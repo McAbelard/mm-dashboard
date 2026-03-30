@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NASDAQ_CHECKLIST</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #06090d;
+    --bg2:       #0b1018;
+    --bg3:       #101820;
+    --border:    #1c2a38;
+    --green:     #00e676;
+    --green-dim: #00e67622;
+    --red:       #ff1744;
+    --red-dim:   #ff174422;
+    --amber:     #ffab00;
+    --amber-dim: #ffab0022;
+    --blue:      #40c4ff;
+    --blue-dim:  #40c4ff18;
+    --gray:      #37474f;
+    --text:      #b0bec5;
+    --text-dim:  #455a64;
+    --mono:      'IBM Plex Mono', monospace;
+    --display:   'Orbitron', sans-serif;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    min-height: 100vh;
+    padding: 16px 14px 32px;
+    background-image:
+      radial-gradient(ellipse 80% 40% at 50% 0%, #001a2f18 0%, transparent 70%),
+      repeating-linear-gradient(0deg, transparent, transparent 39px, #0d1820 39px, #0d1820 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, #0d1820 39px, #0d1820 40px);
+  }
+
+  /* ── HEADER ── */
+  header {
+    text-align: center;
+    padding: 18px 0 22px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 18px;
+    position: relative;
+  }
+
+  header::before {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 50%; transform: translateX(-50%);
+    width: 120px; height: 2px;
+    background: var(--green);
+    box-shadow: 0 0 12px var(--green);
+  }
+
+  header h1 {
+    font-family: var(--display);
+    font-size: 1.05rem;
+    font-weight: 900;
+    letter-spacing: 5px;
+    color: var(--green);
+    text-shadow: 0 0 20px var(--green);
+  }
+
+  header p {
+    font-size: 0.6rem;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    margin-top: 5px;
+  }
+
+  /* ── RUTA ACTIVA ── */
+  #ruta-badge {
+    text-align: center;
+    margin-bottom: 14px;
+    font-size: 0.62rem;
+    letter-spacing: 2px;
+    padding: 6px 14px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    color: var(--text-dim);
+    transition: all 0.3s;
+  }
+
+  #ruta-badge.standard { border-color: var(--blue); color: var(--blue); background: var(--blue-dim); }
+  #ruta-badge.golden   { border-color: var(--amber); color: var(--amber); background: var(--amber-dim);
+                         box-shadow: 0 0 16px var(--amber-dim); }
+
+  /* ── STEP CARD ── */
+  .step {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    transition: border-color 0.25s, background 0.25s;
+    animation: fadeIn 0.3s ease both;
+  }
+
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+  .step:nth-child(1) { animation-delay: 0.05s; }
+  .step:nth-child(2) { animation-delay: 0.1s; }
+  .step:nth-child(3) { animation-delay: 0.15s; }
+  .step:nth-child(4) { animation-delay: 0.2s; }
+  .step:nth-child(5) { animation-delay: 0.25s; }
+  .step:nth-child(6) { animation-delay: 0.3s; }
+  .step:nth-child(7) { animation-delay: 0.35s; }
+
+  .step.done    { border-color: var(--green); background: linear-gradient(135deg, var(--bg2), #001a0f); }
+  .step.fail    { border-color: var(--red);   background: linear-gradient(135deg, var(--bg2), #1a0008); }
+  .step.warn    { border-color: var(--amber); background: linear-gradient(135deg, var(--bg2), #1a1000); }
+  .step.na      { border-color: var(--gray);  opacity: 0.5; }
+  .step.blocked { border-color: var(--red); background: linear-gradient(135deg, #1a0008, #0d0004);
+                  box-shadow: 0 0 16px #ff174433; }
+
+  /* ── STEP HEADER ── */
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px 6px;
+  }
+
+.step-title {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    color: var(--text);
+    flex: 1;
+    line-height: 1.3;
+  }
+
+  .step-icon {
+    font-size: 1rem;
+    min-width: 20px;
+    text-align: center;
+  }
+
+  .step-badge {
+    font-size: 0.58rem;
+    padding: 2px 8px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+
+  .step-badge.green  { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+  .step-badge.red    { border-color: var(--red);   color: var(--red);   background: var(--red-dim);   }
+  .step-badge.amber  { border-color: var(--amber); color: var(--amber); background: var(--amber-dim); }
+  .step-badge.gray   { border-color: var(--gray);  color: var(--gray);  }
+
+  /* ── OPCIONES ── */
+  .step-body { padding: 0 12px 10px; }
+
+  .opts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 4px;
+  }
+
+  .opt {
+    font-size: 0.65rem;
+    padding: 5px 11px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.12s;
+    letter-spacing: 0.3px;
+    user-select: none;
+  }
+
+  .opt:active { transform: scale(0.96); }
+  .opt.sel-green  { border-color: var(--green); background: var(--green-dim); color: var(--green); }
+  .opt.sel-red    { border-color: var(--red);   background: var(--red-dim);   color: var(--red);   }
+  .opt.sel-amber  { border-color: var(--amber); background: var(--amber-dim); color: var(--amber); }
+  .opt.sel-gray   { border-color: var(--gray);  background: #1c2a3822;        color: var(--gray);  }
+  .opt.disabled   { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+
+  /* Aviso CHoCH bloqueado */
+  .choch-block {
+    font-size: 0.6rem;
+    letter-spacing: 1.5px;
+    color: var(--red);
+    border: 1px solid var(--red-dim);
+    background: var(--red-dim);
+    border-radius: 3px;
+    padding: 5px 10px;
+    margin-top: 6px;
+    display: none;
+  }
+
+  /* Nota excepción fibo */
+  .fibo-note {
+    font-size: 0.58rem;
+    color: var(--amber);
+    margin-top: 5px;
+    letter-spacing: 0.5px;
+    display: none;
+  }
+
+  /* ── SLIDER EMOCIONAL ── */
+  .slider-wrap { margin-top: 6px; }
+
+  .slider-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.55rem;
+    color: var(--text-dim);
+    margin-bottom: 5px;
+    letter-spacing: 0.5px;
+  }
+
+  input[type=range] {
+    width: 100%;
+    -webkit-appearance: none;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--border);
+    outline: none;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--green);
+    cursor: pointer;
+    box-shadow: 0 0 8px var(--green);
+    transition: background 0.2s;
+  }
+
+  .slider-val {
+    text-align: center;
+    font-family: var(--display);
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-top: 4px;
+    transition: color 0.3s;
+  }
+
+  .slider-sub {
+    text-align: center;
+    font-size: 0.58rem;
+    color: var(--text-dim);
+    margin-top: 2px;
+    letter-spacing: 1px;
+  }
+
+  /* ── SEPARADOR ── */
+  .sep {
+    height: 1px;
+    background: var(--border);
+    margin: 12px 0;
+    position: relative;
+  }
+
+  .sep::after {
+    content: 'GESTIÓN';
+    position: absolute;
+    top: -8px; left: 50%; transform: translateX(-50%);
+    background: var(--bg);
+    padding: 0 10px;
+    font-size: 0.55rem;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+  }
+
+  /* ── RESUMEN PENDIENTES ── */
+  #pending-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    min-height: 36px;
+    font-size: 0.62rem;
+    color: var(--text-dim);
+    line-height: 1.8;
+    display: none;
+  }
+
+  #pending-box.visible { display: block; }
+  #pending-box .pitem { color: var(--amber); }
+  #pending-box .pblock { color: var(--red); font-weight: 500; }
+
+  /* ── VEREDICTO ── */
+  #veredicto {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 14px;
+    text-align: center;
+    margin-bottom: 12px;
+    transition: all 0.3s;
+  }
+
+  #veredicto .verd-label {
+    font-family: var(--display);
+    font-size: 1.1rem;
+    font-weight: 900;
+    letter-spacing: 3px;
+    margin-bottom: 4px;
+  }
+
+  #veredicto .verd-sub {
+    font-size: 0.62rem;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  #veredicto .verd-ruta {
+    font-size: 0.58rem;
+    margin-top: 6px;
+    padding: 3px 10px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+
+  /* dots */
+  .dots {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin: 8px 0 4px;
+  }
+
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    transition: all 0.2s;
+  }
+
+  .dot.g { background: var(--green); border-color: var(--green); box-shadow: 0 0 5px var(--green); }
+  .dot.r { background: var(--red);   border-color: var(--red); }
+  .dot.a { background: var(--amber); border-color: var(--amber); }
+  .dot.n { background: var(--gray);  border-color: var(--gray); opacity: 0.4; }
+
+  /* ── BOTÓN RESET ── */
+  .btn-reset {
+    width: 100%;
+    padding: 13px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .btn-reset:hover { border-color: var(--red); color: var(--red); }
+  .btn-reset:active { transform: scale(0.98); }
+
+  /* ── GATILLO BADGE ── */
+  .gatillo-tag {
+    font-size: 0.5rem;
+    letter-spacing: 1.5px;
+    background: #ff174415;
+    border: 1px solid var(--red);
+    color: var(--red);
+    padding: 1px 6px;
+    border-radius: 2px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  /* ── EXCEPCION TAG ── */
+  .excep-tag {
+    font-size: 0.5rem;
+    letter-spacing: 1px;
+    background: var(--amber-dim);
+    border: 1px solid var(--amber);
+    color: var(--amber);
+    padding: 1px 6px;
+    border-radius: 2px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>NAS100 — PRE-ENTRADA</h1>
+  <p>CHECKLIST PERSONAL DE EJECUCIÓN</p>
+</header>
+
+<div id="ruta-badge">— SELECCIONA EL PUNTO 2 PARA DETERMINAR LA RUTA —</div>
+
+<!-- PASO 1: BIAS -->
+<div class="step" id="s1">
+  <div class="step-header">
+    <span class="step-title">BIAS CLARO<br><small style="color:var(--text-dim);font-size:0.62rem">Dirección 1H o 4H definida</small></span>
+    <span class="step-badge" id="b1">—</span>
+  </div>
+  <div class="step-body">
+    <div class="opts">
+      <div class="opt" data-step="1" data-val="LONG" data-score="green" onclick="pick(this)">📈 LONG</div>
+      <div class="opt" data-step="1" data-val="SHORT" data-score="green" onclick="pick(this)">📉 SHORT</div>
+      <div class="opt" data-step="1" data-val="SIN BIAS CLARO" data-score="red" onclick="pick(this)">⛔ SIN BIAS CLARO</div>
+    </div>
+  </div>
+</div>
+
+<!-- PASO 2: REACCIÓN -->
+<div class="step" id="s2">
+  <div class="step-header">
+    <span class="step-title">REACCIÓN EN ZONA<br><small style="color:var(--text-dim);font-size:0.62rem">¿Desde dónde reacciona el precio?</small></span>
+    <span class="step-badge" id="b2">—</span>
+  </div>
+  <div class="step-body">
+    <div class="opts">
+      <div class="opt" data-step="2" data-val="ORDER BLOCK" data-score="green" data-ruta="standard" onclick="pick(this)">🟦 Order Block</div>
+      <div class="opt" data-step="2" data-val="SOPORTE/RESISTENCIA" data-score="green" data-ruta="standard" onclick="pick(this)">🚪 Soporte / Resistencia</div>
+      <div class="opt" data-step="2" data-val="TOMA DE LIQUIDEZ" data-score="green" data-ruta="standard" onclick="pick(this)">🧲 Toma de Liquidez</div>
+      <div class="opt" data-step="2" data-val="GOLDEN ZONE FIBO" data-score="green" data-ruta="golden" onclick="pick(this)">⭐ Golden Zone Fibo</div>
+      <div class="opt" data-step="2" data-val="SIN ZONA CLARA" data-score="red" data-ruta="standard" onclick="pick(this)">⛔ Sin zona clara</div>
+    </div>
+    <div class="fibo-note" id="fibo-note">⭐ EXCEPCIÓN FIBO ACTIVA — Pasos 3, 4 y 5 no son obligatorios</div>
+  </div>
+</div>
+
+
+<!-- PASO FIBO: ¿CÓMO RETROCEDIÓ EL PRECIO? -->
+<div class="step" id="sf" style="display:none">
+  <div class="step-header">
+    <span class="step-title">¿CÓMO RETROCEDIÓ EL PRECIO A LA GOLDEN ZONE?<br><small style="color:var(--text-dim);font-size:0.62rem">El comportamiento del retroceso define la calidad de la entrada</small></span>
+    <span class="step-badge" id="bf">—</span>
+  </div>
+  <div class="step-body">
+    <div class="opts">
+      <div class="opt" data-step="f" data-val="ACUMULANDO" data-score="green" onclick="pick(this)">🟢 Acumulando — Precio consolida en zona · Ventaja alta</div>
+      <div class="opt" data-step="f" data-val="RÁPIDO" data-score="amber" onclick="pick(this)">⚠️ Rápido — Spike directo a zona · Precaución</div>
+    </div>
+  </div>
+</div>
+
+<!-- PASO 3: ROMPIMIENTO 1M -->
+<div class="step" id="s3">
+  <div class="step-header">
+    <span class="step-title">ROMPIMIENTO DE TENDENCIA EN TEMPORALIDADES MENORES</span>
+    <span class="step-badge" id="b3">—</span>
+  </div>
+  <div class="step-body">
+    <div class="opts" id="opts3">
+      <div class="opt" data-step="3" data-val="SÍ" data-score="green" onclick="pick(this)">✅ Sí — Rompió</div>
+      <div class="opt" data-step="3" data-val="NO" data-score="red" onclick="pick(this)">❌ No — Sin ruptura</div>
+      <div class="opt na-opt" data-step="3" data-val="N/A" data-score="na" onclick="pick(this)" style="display:none">— N/A (Fibo)</div>
+    </div>
+  </div>
+</div>
+
+<!-- PASO 4: CHoCH -->
+<div class="step" id="s4">
+  <div class="step-header">
+    <span class="step-title">
+      CHoCH — CAMBIO DE ESTRUCTURA
+      <span class="gatillo-tag">GATILLO</span>
+    </span>
+    <span class="step-badge" id="b4">—</span>
+  </div>
+  <div class="step-body">
+    <div class="opts" id="opts4">
+      <div class="opt" data-step="4" data-val="CHoCH ALCISTA" data-score="green" onclick="pick(this)">📈 CHoCH Alcista</div>
+      <div class="opt" data-step="4" data-val="CHoCH BAJISTA" data-score="green" onclick="pick(this)">📉 CHoCH Bajista</div>
+      <div class="opt" data-step="4" data-val="SIN CHoCH" data-score="red" onclick="pick(this)">❌ Sin CHoCH</div>
+      <div class="opt na-opt" data-step="4" data-val="N/A" data-score="na" onclick="pick(this)" style="display:none">— N/A (Fibo)</div>
+    </div>
+    <div class="choch-block" id="choch-warn">⚠ SIN CHoCH = SIN ENTRADA — REGLA ABSOLUTA</div>
+  </div>
+</div>
+
+<!-- PASO 5: RETESTEO -->
+<div class="step" id="s5">
+  <div class="step-header">
+    <span class="step-title">RETESTEO DE LA ZONA</span>
+    <span class="step-badge" id="b5">—</span>
+  </div>
+  <div class="step-body">
+    <div class="opts" id="opts5">
+      <div class="opt" data-step="5" data-val="SÍ" data-score="green" onclick="pick(this)">✅ Sí — Retesteó</div>
+      <div class="opt" data-step="5" data-val="ENTRADA DIRECTA" data-score="amber" onclick="pick(this)">⚡ Sin retest — CHoCH con convicción</div>
+      <div class="opt" data-step="5" data-val="ESPERANDO" data-score="amber" onclick="pick(this)">⏳ Esperando retest</div>
+      <div class="opt" data-step="5" data-val="NO SE DIO" data-score="red" onclick="pick(this)">❌ No se dio y ya se fue</div>
+      <div class="opt na-opt" data-step="5" data-val="N/A" data-score="na" onclick="pick(this)" style="display:none">— N/A (Fibo)</div>
+    </div>
+  </div>
+</div>
+
+<div class="sep"></div>
+
+<!-- PASO 6: RIESGO -->
+<div class="step" id="s6">
+  <div class="step-header">
+    <span class="step-title">RIESGO GESTIONADO<br><small style="color:var(--text-dim);font-size:0.62rem">SL definido más allá del extremo · Lote según VIX y reglas</small></span>
+    <span class="step-badge" id="b6">—</span>
+  </div>
+  <div class="step-body">
+    <div class="opts">
+      <div class="opt" data-step="6" data-val="SÍ — Riesgo OK" data-score="green" onclick="pick(this)">✅ Sí — Todo definido</div>
+      <div class="opt" data-step="6" data-val="SL AMPLIO" data-score="amber" onclick="pick(this)">⚠️ SL amplio / revisar</div>
+      <div class="opt" data-step="6" data-val="NO GESTIONADO" data-score="red" onclick="pick(this)">❌ No gestionado</div>
+    </div>
+  </div>
+</div>
+
+<!-- PASO 7: EMOCIONAL -->
+<div class="step" id="s7">
+  <div class="step-header">
+    <span class="step-title">ESTADO EMOCIONAL<br><small style="color:var(--text-dim);font-size:0.62rem">Mínimo 5/10 para operar</small></span>
+    <span class="step-badge" id="b7">—</span>
+  </div>
+  <div class="step-body">
+    <div class="slider-wrap">
+      <div class="slider-labels">
+        <span>0 — Destruido</span>
+        <span>5 — Neutro</span>
+        <span>10 — Óptimo</span>
+      </div>
+      <input type="range" min="0" max="10" value="5" id="emo-slider" oninput="updateEmo(this.value)">
+      <div class="slider-val" id="emo-val">5/10</div>
+      <div class="slider-sub" id="emo-sub">NEUTRO — PUEDE OPERAR</div>
+    </div>
+  </div>
+</div>
+
+<!-- PENDIENTES -->
+<div id="pending-box"></div>
+
+<!-- VEREDICTO -->
+<div id="veredicto">
+  <div class="dots" id="dots-row">
+    <div class="dot" id="d1"></div>
+    <div class="dot" id="d2"></div>
+    <div class="dot" id="df" style="display:none"></div>
+    <div class="dot" id="d3"></div>
+    <div class="dot" id="d4"></div>
+    <div class="dot" id="d5"></div>
+    <div class="dot" id="d6"></div>
+    <div class="dot" id="d7"></div>
+  </div>
+  <div class="verd-label" id="verd-txt" style="color:var(--text-dim)">COMPLETA EL CHECKLIST</div>
+  <div class="verd-sub" id="verd-sub">Marca todas las opciones para obtener el veredicto</div>
+  <div class="verd-ruta" id="verd-ruta" style="display:none"></div>
+</div>
+
+<!-- RESET -->
+<button class="btn-reset" onclick="resetAll()">↺ &nbsp; RESET — NUEVA SESIÓN</button>
+
+<script>
+const state = {}; // step -> {val, score}
+let ruta = 'none'; // 'standard' | 'golden' | 'none'
+let emoVal = 5;
+
+// Init slider
+updateEmo(5);
+
+function pick(el) {
+  const step = el.dataset.step;
+  const val  = el.dataset.val;
+  const score = el.dataset.score;
+
+  // Deselect siblings
+  document.querySelectorAll(`[data-step="${step}"]`).forEach(o => {
+    o.classList.remove('sel-green','sel-red','sel-amber','sel-gray');
+  });
+
+  // Apply color
+  const colorMap = { green:'sel-green', red:'sel-red', amber:'sel-amber', na:'sel-gray' };
+  el.classList.add(colorMap[score] || 'sel-gray');
+
+  state[step] = { val, score };
+
+  // Step 2 special: determine ruta
+  if (step === '2') {
+    const r = el.dataset.ruta || 'standard';
+    setRuta(r);
+  }
+
+  // CHoCH warning
+  if (step === '4') {
+    const warn = document.getElementById('choch-warn');
+    warn.style.display = (val === 'SIN CHoCH' && ruta !== 'golden') ? 'block' : 'none';
+  }
+
+  updateBadge(step, score, val);
+  updateStep(step, score);
+  updateVeredicto();
+}
+
+function setRuta(r) {
+  ruta = r;
+  const badge = document.getElementById('ruta-badge');
+  const fiboNote = document.getElementById('fibo-note');
+
+  if (r === 'golden') {
+    badge.textContent = '⭐ RUTA GOLDEN ZONE FIBO — Pasos 3, 4 y 5 opcionales';
+    badge.className = 'golden';
+    fiboNote.style.display = 'block';
+    document.getElementById('sf').style.display = '';
+    // Show N/A options for 3,4,5 and auto-select if not already picked
+    ['3','4','5'].forEach(s => {
+      document.querySelectorAll(`.na-opt[data-step="${s}"]`).forEach(o => o.style.display = '');
+      // If not picked yet, auto-select N/A
+      if (!state[s] || state[s].score === 'red') {
+        const naOpt = document.querySelector(`.na-opt[data-step="${s}"]`);
+        if (naOpt) {
+          document.querySelectorAll(`[data-step="${s}"]`).forEach(o =>
+            o.classList.remove('sel-green','sel-red','sel-amber','sel-gray'));
+          naOpt.classList.add('sel-gray');
+          state[s] = { val: 'N/A', score: 'na' };
+          updateBadge(s, 'na', 'N/A');
+          updateStep(s, 'na');
+        }
+      }
+      // Hide CHoCH warning
+      if (s === '4') document.getElementById('choch-warn').style.display = 'none';
+    });
+  } else {
+    badge.textContent = '🔷 RUTA ESTÁNDAR — Todos los pasos requeridos';
+    badge.className = 'standard';
+    fiboNote.style.display = 'none';
+    document.getElementById('sf').style.display = 'none';
+    delete state['f'];
+    document.querySelectorAll('[data-step="f"]').forEach(o => o.classList.remove('sel-green','sel-red','sel-amber','sel-gray'));
+    updateBadge('f', null, null);
+    updateStep('f', null);
+    // Hide N/A opts
+    ['3','4','5'].forEach(s => {
+      document.querySelectorAll(`.na-opt[data-step="${s}"]`).forEach(o => o.style.display = 'none');
+      // Clear auto-selected N/A
+      if (state[s] && state[s].score === 'na') {
+        delete state[s];
+        document.querySelectorAll(`[data-step="${s}"]`).forEach(o =>
+          o.classList.remove('sel-green','sel-red','sel-amber','sel-gray'));
+        updateBadge(s, null, null);
+        updateStep(s, null);
+      }
+    });
+  }
+
+  updateVeredicto();
+}
+
+function updateBadge(step, score, val) {
+  const b = document.getElementById('b' + step);
+  if (!b) return;
+  if (!score) { b.textContent = '—'; b.className = 'step-badge'; return; }
+  const labels = { green:'✅ OK', red:'❌ NO', amber:'⚠ LEVE', na:'— N/A' };
+  b.textContent = labels[score] || val;
+  const cls = { green:'green', red:'red', amber:'amber', na:'gray' };
+  b.className = 'step-badge ' + (cls[score] || '');
+}
+
+function updateStep(step, score) {
+  const el = document.getElementById('s' + step);
+  if (!el) return;
+  el.className = 'step';
+  if (!score) return;
+
+  // CHoCH blocked special case
+  if (step === '4' && state['4'] && state['4'].val === 'SIN CHoCH' && ruta !== 'golden') {
+    el.classList.add('blocked');
+    return;
+  }
+  const map = { green:'done', red:'fail', amber:'warn', na:'na' };
+  el.classList.add(map[score] || '');
+}
+
+function updateEmo(val) {
+  val = parseInt(val);
+  emoVal = val;
+  const display = document.getElementById('emo-val');
+  const sub     = document.getElementById('emo-sub');
+  const slider  = document.getElementById('emo-slider');
+
+  let col, label, score;
+  if (val >= 8)      { col = 'var(--green)'; label = 'ÓPTIMO — ADELANTE'; score = 'green'; }
+  else if (val >= 5) { col = 'var(--amber)'; label = 'NEUTRO — PUEDE OPERAR'; score = 'amber'; }
+  else if (val >= 3) { col = 'var(--red)';   label = 'BAJO — PRECAUCIÓN'; score = 'red'; }
+  else               { col = 'var(--red)';   label = 'MUY BAJO — NO OPERAR'; score = 'red'; }
+
+  display.textContent = val + '/10';
+  display.style.color = col;
+  sub.textContent = label;
+
+  // Gradient on track
+  const pct = val * 10;
+  slider.style.background = `linear-gradient(to right, ${col} ${pct}%, var(--border) ${pct}%)`;
+
+  state['7'] = { val: val + '/10', score };
+  updateBadge('7', score, val + '/10');
+  updateStep('7', score);
+  updateVeredicto();
+}
+
+function updateVeredicto() {
+  const totalSteps = ruta === 'golden' ? ['1','2','f','6','7'] :
+                     ruta === 'standard' ? ['1','2','3','4','5','6','7'] :
+                     ['1','2','3','4','5','6','7'];
+
+  // Count filled
+  const filled = totalSteps.filter(s => state[s]).length;
+  const total  = totalSteps.length;
+
+  // Update dots
+  // Show/hide fibo dot
+  const dfDot = document.getElementById('df');
+  if (dfDot) dfDot.style.display = ruta === 'golden' ? '' : 'none';
+  // Update fibo dot
+  if (state['f'] && ruta === 'golden') {
+    const fDot = document.getElementById('df');
+    if (fDot) {
+      if (state['f'].score === 'green') fDot.className = 'dot g';
+      else if (state['f'].score === 'amber') fDot.className = 'dot a';
+      else fDot.className = 'dot';
+    }
+  }
+  const allSteps = ['1','2','3','4','5','6','7'];
+  allSteps.forEach((s,i) => {
+    const dot = document.getElementById('d' + (i+1));
+    const st = state[s];
+    dot.className = 'dot';
+    if (!st) return;
+    if (ruta === 'golden' && ['3','4','5'].includes(s)) { dot.className = 'dot n'; return; }
+    if (st.score === 'green') dot.className = 'dot g';
+    else if (st.score === 'red') dot.className = 'dot r';
+    else if (st.score === 'amber') dot.className = 'dot a';
+    else if (st.score === 'na') dot.className = 'dot n';
+  });
+
+  const vTxt  = document.getElementById('verd-txt');
+  const vSub  = document.getElementById('verd-sub');
+  const vRuta = document.getElementById('verd-ruta');
+  const vBox  = document.getElementById('veredicto');
+  const pBox  = document.getElementById('pending-box');
+
+  // Pending items
+  const pending = [];
+  const blocks  = [];
+
+  if (!state['1']) pending.push('Paso 1: Define el bias');
+  else if (state['1'].score === 'red') blocks.push('Sin bias — dirección no clara');
+
+  if (!state['2']) pending.push('Paso 2: Selecciona la zona de reacción');
+
+  if (ruta === 'golden') {
+    if (!state['f']) pending.push('¿Cómo retrocedió el precio a la zona?');
+    else if (state['f'].score === 'amber') blocks.push('Retroceso rápido — operar con precaución en Golden Zone');
+  }
+
+  if (ruta === 'standard') {
+    if (!state['3']) pending.push('Paso 3: ¿Hubo rompimiento en 1M?');
+    else if (state['3'].score === 'red') blocks.push('Sin rompimiento de tendencia en 1M');
+
+    if (!state['4']) pending.push('Paso 4: ¿Hay CHoCH?');
+    else if (state['4'].val === 'SIN CHoCH') blocks.push('❌ SIN CHoCH — ENTRADA BLOQUEADA');
+
+    if (!state['5']) pending.push('Paso 5: ¿Hubo retesteo?');
+  }
+
+  if (!state['6']) pending.push('Paso 6: Gestiona el riesgo');
+  else if (state['6'].score === 'red') blocks.push('Riesgo no gestionado');
+
+  if (emoVal < 5) blocks.push('Estado emocional por debajo de 5/10');
+
+  // Show pending box
+  if (pending.length > 0 || blocks.length > 0) {
+    pBox.classList.add('visible');
+    let html = '';
+    blocks.forEach(b  => { html += `<div class="pblock">⛔ ${b}</div>`; });
+    pending.forEach(p => { html += `<div class="pitem">→ ${p}</div>`; });
+    pBox.innerHTML = html;
+  } else {
+    pBox.classList.remove('visible');
+    pBox.innerHTML = '';
+  }
+
+  // Not enough filled
+  if (filled < total) {
+    vTxt.textContent = 'COMPLETA EL CHECKLIST';
+    vTxt.style.color = 'var(--text-dim)';
+    vSub.textContent = `${filled} / ${total} pasos completados`;
+    vRuta.style.display = 'none';
+    vBox.style.borderColor = 'var(--border)';
+    return;
+  }
+
+  // Determine verdict
+  const hasBlock = blocks.length > 0;
+  const greens   = totalSteps.filter(s => state[s] && state[s].score === 'green').length;
+  const ambers   = totalSteps.filter(s => state[s] && state[s].score === 'amber').length;
+
+  vRuta.style.display = 'inline-block';
+
+  if (hasBlock) {
+    vTxt.textContent  = '⛔ NO ENTRAR';
+    vTxt.style.color  = 'var(--red)';
+    vSub.textContent  = blocks[0];
+    vBox.style.borderColor = 'var(--red)';
+    vBox.style.boxShadow   = '0 0 20px #ff174433';
+    vRuta.textContent = ruta === 'golden' ? '⭐ Ruta Fibo' : '🔷 Ruta Estándar';
+    vRuta.style.background = 'var(--red-dim)';
+    vRuta.style.color = 'var(--red)';
+    vRuta.style.border = '1px solid var(--red)';
+  } else if (greens === total) {
+    vTxt.textContent  = '🟢 ENTRAR';
+    vTxt.style.color  = 'var(--green)';
+    vSub.textContent  = ruta === 'golden' ? 'Golden Zone confirmada — Entrada válida' : 'Todos los criterios confirmados — Ejecuta con disciplina';
+    vBox.style.borderColor = 'var(--green)';
+    vBox.style.boxShadow   = '0 0 24px #00e67633';
+    vRuta.textContent = ruta === 'golden' ? '⭐ Ruta Fibo — Excepción activa' : '🔷 Ruta Estándar — 100%';
+    vRuta.style.background = 'var(--green-dim)';
+    vRuta.style.color = 'var(--green)';
+    vRuta.style.border = '1px solid var(--green)';
+  } else if (ambers > 0 && greens + ambers === total) {
+    vTxt.textContent  = '⚠ PRECAUCIÓN';
+    vTxt.style.color  = 'var(--amber)';
+    vSub.textContent  = 'Hay factores con reservas — Evalúa si el contexto lo justifica';
+    vBox.style.borderColor = 'var(--amber)';
+    vBox.style.boxShadow   = '0 0 16px #ffab0033';
+    vRuta.textContent = ruta === 'golden' ? '⭐ Ruta Fibo' : '🔷 Ruta Estándar';
+    vRuta.style.background = 'var(--amber-dim)';
+    vRuta.style.color = 'var(--amber)';
+    vRuta.style.border = '1px solid var(--amber)';
+  } else {
+    vTxt.textContent  = '🔴 NO ENTRAR';
+    vTxt.style.color  = 'var(--red)';
+    vSub.textContent  = 'Criterios insuficientes para operar';
+    vBox.style.borderColor = 'var(--red)';
+    vBox.style.boxShadow   = 'none';
+    vRuta.textContent = ruta === 'golden' ? '⭐ Ruta Fibo' : '🔷 Ruta Estándar';
+    vRuta.style.background = 'var(--red-dim)';
+    vRuta.style.color = 'var(--red)';
+    vRuta.style.border = '1px solid var(--red)';
+  }
+}
+
+function resetAll() {
+  // Clear state
+  Object.keys(state).forEach(k => delete state[k]);
+  ruta = 'none';
+  emoVal = 5;
+
+  // Clear selections
+  document.querySelectorAll('.opt').forEach(o =>
+    o.classList.remove('sel-green','sel-red','sel-amber','sel-gray'));
+
+  // Reset steps style
+  for (let i = 1; i <= 7; i++) {
+    const s = document.getElementById('s' + i);
+    if (s) s.className = 'step';
+    const b = document.getElementById('b' + i);
+    if (b) { b.textContent = '—'; b.className = 'step-badge'; }
+    const d = document.getElementById('d' + i);
+    if (d) { d.className = 'dot'; }
+  }
+
+  // Hide N/A opts
+  document.querySelectorAll('.na-opt').forEach(o => o.style.display = 'none');
+
+  // Reset ruta badge
+  const badge = document.getElementById('ruta-badge');
+  badge.textContent = '— SELECCIONA EL PUNTO 2 PARA DETERMINAR LA RUTA —';
+  badge.className = '';
+
+  // Hide fibo note and CHoCH warn
+  document.getElementById('fibo-note').style.display = 'none';
+  document.getElementById('choch-warn').style.display = 'none';
+
+  // Reset slider
+  document.getElementById('emo-slider').value = 5;
+  updateEmo(5);
+
+  // Reset veredicto
+  const vTxt = document.getElementById('verd-txt');
+  const vSub = document.getElementById('verd-sub');
+  const vRuta = document.getElementById('verd-ruta');
+  const vBox = document.getElementById('veredicto');
+  vTxt.textContent = 'COMPLETA EL CHECKLIST';
+  vTxt.style.color = 'var(--text-dim)';
+  vSub.textContent = 'Marca todas las opciones para obtener el veredicto';
+  vRuta.style.display = 'none';
+  vBox.style.borderColor = 'var(--border)';
+  vBox.style.boxShadow = 'none';
+
+  // Reset fibo step
+  delete state['f'];
+  document.querySelectorAll('[data-step="f"]').forEach(o => o.classList.remove('sel-green','sel-red','sel-amber','sel-gray'));
+  const sfEl = document.getElementById('sf');
+  if (sfEl) sfEl.style.display = 'none';
+  const dfDotR = document.getElementById('df');
+  if (dfDotR) { dfDotR.style.display = 'none'; dfDotR.className = 'dot'; }
+  updateBadge('f', null, null);
+
+  // Clear pending
+  const pBox = document.getElementById('pending-box');
+  pBox.classList.remove('visible');
+  pBox.innerHTML = '';
+}
+</script>
+</body>
+</html>
